@@ -5,7 +5,7 @@
     "longName": "WunderPebble",
     "versionCode": 1,
     "capabilities": [
-        ""
+        "configurable"
     ],
     "shortName": "WunderPebble",
     "companyName": "Intrepid Designs",

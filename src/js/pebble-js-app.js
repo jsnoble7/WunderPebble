@@ -50,8 +50,9 @@ Pebble.addEventListener(
 	"ready",
 	function(e) {
 		console.log("connect!" + e.ready);
-		var wunderlist = new W1();
 		console.log(e.type);
+		var wunderlist = new W1();
+		
 	}
 );
 
@@ -66,13 +67,21 @@ Pebble.addEventListener(
 	}
 );
 
-// On close
+// Show the configuration page
+Pebble.addEventListener(
+	"showConfiguration",
+	function(e) {
+		console.log("Config!");
+		Pebble.openURL("http://intrepidwebdesigns.com/WunderPebble/config");
+	}
+);
+
+// Configuration page closed
 Pebble.addEventListener(
 	"webviewclosed",
 	function(e) {
-		console.log("webview closed");
-		console.log(e.type);
-		console.log(e.response);
+		console.log("config closed");
+		var data = e.response;
 	}
 );
 
