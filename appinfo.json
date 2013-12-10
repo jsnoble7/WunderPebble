@@ -1,0 +1,25 @@
+{
+    "versionLabel": "1.0",
+    "uuid": "43c0ff7b-b360-4fb3-83c9-fd79cdffb888",
+    "appKeys": {},
+    "longName": "WunderPebble",
+    "versionCode": 1,
+    "capabilities": [
+        ""
+    ],
+    "shortName": "WunderPebble",
+    "companyName": "Intrepid Designs",
+    "watchapp": {
+        "watchface": false
+    },
+    "resources": {
+        "media": [
+            {
+                "menuIcon": true,
+                "type": "png",
+                "name": "APP_ICON",
+                "file": "images/icon.png"
+            }
+        ]
+    }
+}
