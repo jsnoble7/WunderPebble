@@ -5,6 +5,8 @@ static Window *window;
 static TextLayer *text_layer;
 static AppSync sync;
 static uint8_t sync_buffer[64];
+static uint8_t counter = 0;
+static char text = ' ';
 enum Keys {
 	TEST_KEY = 0x0         // TUPLE_CSTRING
 };
@@ -15,7 +17,7 @@ static void app_no_update(DictionaryResult dict_error, AppMessageResult app_mess
 }
 
 static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple* old_tuple, void* context) {
-	;
+	text_layer_set_text(text_layer, "Hello World\nBoop");
 }
 
 static void send_cmd(void) {
@@ -45,7 +47,7 @@ static void window_load(Window *window) {
 	layer_add_child(window_layer, text_layer_get_layer(text_layer));
 	
 	Tuplet initial_values[] = {
-		TupletInteger(TEST_KEY, (uint8_t) 1)
+		TupletCString(TEST_KEY, "St Pebblesburg")
 	};
 
 	app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values, ARRAY_LENGTH(initial_values), app_updated, app_no_update, NULL);
