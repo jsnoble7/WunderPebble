@@ -70,13 +70,13 @@ static void window_load(Window *window) {
 	text_layer_set_text(title_layer, "Title");
 	text_layer_set_text(body_layer, "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque aliquet nibh nec urna. In nisi neque, aliquet vel, dapibus id, mattis vel, nisi. Sed pretium, ligula sollicitudin laoreet viverra, tortor libero sodales leo, eget blandit nunc tortor eu nibh. Nullam mollis. Ut justo. Suspendisse potenti.");
 	
-	GSize content_size = text_layer_get_content_size(body_layer);
-	text_layer_set_size(body_layer, content_size);	
-	scroll_layer_set_content_size(scroll_layer, GSize(content_size.h+36, content_size.w));
-	
 	scroll_layer_add_child(scroll_layer, text_layer_get_layer(title_layer));
 	scroll_layer_add_child(scroll_layer, text_layer_get_layer(body_layer));
 	layer_add_child(window_get_root_layer(window), scroll_layer_get_layer(scroll_layer));
+	
+	GSize content_size = text_layer_get_content_size(body_layer);
+	text_layer_set_size(body_layer, content_size);	
+	scroll_layer_set_content_size(scroll_layer, GSize(content_size.w, content_size.h+42));
 	
 	Tuplet initial_values[] = {
 		TupletCString(TITLE_KEY, "Title"),
