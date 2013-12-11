@@ -2,13 +2,15 @@
 
 // Initializing Veriables
 static Window *window;
-static TextLayer *text_layer;
+static ScrollLayer *scroll_layer;
+static TextLayer *title_layer;
+static TextLayer *body_layer;
 static AppSync sync;
 static uint8_t sync_buffer[64];
-static uint8_t counter = 0;
-static char text = ' ';
 enum Keys {
-	TEST_KEY = 0x0         // TUPLE_CSTRING
+	TITLE_KEY = 0x0,	// TUPLE_CSTRING
+	BODY_KEY = 0x1,		// TUPLE_CSTRING
+	DUE_KEY = 0X2		// TUPLE_INTEGER
 };
 
 // Functions
@@ -17,18 +19,31 @@ static void app_no_update(DictionaryResult dict_error, AppMessageResult app_mess
 }
 
 static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple* old_tuple, void* context) {
-	text_layer_set_text(text_layer, new_tuple->value->cstring);
+	/*switch (key) {
+		case TITLE_KEY:
+			text_layer_set_text(title_layer, new_tuple->value->cstring);
+			break;
+
+		case BODY_KEY:
+			text_layer_set_text(body_layer, new_tuple->value->cstring);
+			break;
+
+		case DUE_KEY:
+			text_layer_set_text(title_layer, new_tuple->value->cstring);
+			break;
+	}*/
+	;
 }
 
 static void send_cmd(void) {
-	Tuplet value = TupletInteger(1, 1);
-
 	DictionaryIterator *iter;
 	app_message_outbox_begin(&iter);
 
 	if (iter == NULL) {
 		return;
 	}
+	
+	Tuplet value = TupletInteger(1, 1);
 
 	dict_write_tuplet(iter, &value);
 	dict_write_end(iter);
@@ -36,18 +51,37 @@ static void send_cmd(void) {
 	app_message_outbox_send();
 }
 
-static void window_load(Window *window) {
-	Layer *window_layer = window_get_root_layer(window);
+static void window_load(Window *window) {	
+	scroll_layer = scroll_layer_create(layer_get_frame(window_get_root_layer(window)));
+	scroll_layer_set_click_config_onto_window(scroll_layer, window);
 
-	text_layer = text_layer_create(GRect(0, 95, 144, 68));
-	text_layer_set_text_color(text_layer, GColorWhite);
-	text_layer_set_background_color(text_layer, GColorClear);
-	text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
-	text_layer_set_text_alignment(text_layer, GTextAlignmentCenter);
-	layer_add_child(window_layer, text_layer_get_layer(text_layer));
+	title_layer = text_layer_create(GRect(0, 0, 144, 36));
+	text_layer_set_text_color(title_layer, GColorBlack);
+	text_layer_set_background_color(title_layer, GColorClear);
+	text_layer_set_font(title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+	text_layer_set_text_alignment(title_layer, GTextAlignmentCenter);
+	
+	body_layer = text_layer_create(GRect(0, 36, 144, 2000));
+	text_layer_set_text_color(body_layer, GColorBlack);
+	text_layer_set_background_color(body_layer, GColorClear);
+	text_layer_set_font(body_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	text_layer_set_text_alignment(body_layer, GTextAlignmentCenter);
+	
+	text_layer_set_text(title_layer, "Title");
+	text_layer_set_text(body_layer, "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque aliquet nibh nec urna. In nisi neque, aliquet vel, dapibus id, mattis vel, nisi. Sed pretium, ligula sollicitudin laoreet viverra, tortor libero sodales leo, eget blandit nunc tortor eu nibh. Nullam mollis. Ut justo. Suspendisse potenti.");
+	
+	GSize content_size = text_layer_get_content_size(body_layer);
+	text_layer_set_size(body_layer, content_size);	
+	scroll_layer_set_content_size(scroll_layer, GSize(content_size.h+36, content_size.w));
+	
+	scroll_layer_add_child(scroll_layer, text_layer_get_layer(title_layer));
+	scroll_layer_add_child(scroll_layer, text_layer_get_layer(body_layer));
+	layer_add_child(window_get_root_layer(window), scroll_layer_get_layer(scroll_layer));
 	
 	Tuplet initial_values[] = {
-		TupletCString(TEST_KEY, "St Pebblesburg")
+		TupletCString(TITLE_KEY, "Title"),
+		TupletCString(BODY_KEY, "Body"),
+		TupletInteger(DUE_KEY, (uint8_t) 0)
 	};
 
 	app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values, ARRAY_LENGTH(initial_values), app_updated, app_no_update, NULL);
@@ -57,12 +91,14 @@ static void window_load(Window *window) {
 
 static void window_unload(Window *window) {
 	app_sync_deinit(&sync);
-	text_layer_destroy(text_layer);
+	text_layer_destroy(title_layer);
+	text_layer_destroy(body_layer);
+	scroll_layer_destroy(scroll_layer);
 }
 
 static void init(void) {
 	window = window_create();
-	window_set_background_color(window, GColorBlack);
+	window_set_background_color(window, GColorWhite);
 	window_set_fullscreen(window, true);
 	window_set_window_handlers(window, (WindowHandlers) {
 		.load = window_load,

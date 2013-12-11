@@ -77,9 +77,8 @@ Pebble.addEventListener(
 		console.log("config closed");
 		var data = JSON.parse(e.response);
 		Pebble.sendAppMessage({
-			"action": "account",
-			"username": e.username,
-			"password": e.password
+			"title": e.username,
+			"body": e.password
 		});
 	}
 );
