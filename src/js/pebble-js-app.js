@@ -39,7 +39,7 @@ function locationSuccess(pos) {
 function locationError(err) {
 	console.warn('location error (' + err.code + '): ' + err.message);
 	Pebble.sendAppMessage({
-		"city":"Loc Unavailable",
+		"action":"Loc Unavailable",
 		"temperature":"N/A"
 	});
 }
@@ -50,9 +50,6 @@ Pebble.addEventListener(
 	"ready",
 	function(e) {
 		console.log("connect!" + e.ready);
-		console.log(e.type);
-		var wunderlist = new W1();
-		
 	}
 );
 
@@ -60,9 +57,6 @@ Pebble.addEventListener(
 Pebble.addEventListener(
 	"appmessage",
 	function(e) {
-		// Do Something
-		console.log(e.type);
-		console.log(e.payload.temperature);
 		console.log("message!");
 	}
 );
@@ -72,7 +66,7 @@ Pebble.addEventListener(
 	"showConfiguration",
 	function(e) {
 		console.log("Config!");
-		Pebble.openURL("http://intrepidwebdesigns.com/WunderPebble/config");
+		Pebble.openURL("http://intrepidwebdesigns.com/WunderPebble/config/");
 	}
 );
 
@@ -81,7 +75,12 @@ Pebble.addEventListener(
 	"webviewclosed",
 	function(e) {
 		console.log("config closed");
-		var data = e.response;
+		var data = JSON.parse(e.response);
+		Pebble.sendAppMessage({
+			"action": "account",
+			"username": e.username,
+			"password": e.password
+		});
 	}
 );
 

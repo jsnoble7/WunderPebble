@@ -17,7 +17,7 @@ static void app_no_update(DictionaryResult dict_error, AppMessageResult app_mess
 }
 
 static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple* old_tuple, void* context) {
-	text_layer_set_text(text_layer, "Hello World\nBoop");
+	text_layer_set_text(text_layer, new_tuple->value->cstring);
 }
 
 static void send_cmd(void) {
