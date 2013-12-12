@@ -19,7 +19,7 @@ static void app_no_update(DictionaryResult dict_error, AppMessageResult app_mess
 }
 
 static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple* old_tuple, void* context) {
-	/*switch (key) {
+	switch (key) {
 		case TITLE_KEY:
 			text_layer_set_text(title_layer, new_tuple->value->cstring);
 			break;
@@ -31,7 +31,7 @@ static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple*
 		case DUE_KEY:
 			text_layer_set_text(title_layer, new_tuple->value->cstring);
 			break;
-	}*/
+	}
 	;
 }
 
@@ -80,7 +80,7 @@ static void window_load(Window *window) {
 	
 	Tuplet initial_values[] = {
 		TupletCString(TITLE_KEY, "Title"),
-		TupletCString(BODY_KEY, "Body"),
+		TupletCString(BODY_KEY, "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque aliquet nibh nec urna. In nisi neque, aliquet vel, dapibus id, mattis vel, nisi. Sed pretium, ligula sollicitudin laoreet viverra, tortor libero sodales leo, eget blandit nunc tortor eu nibh. Nullam mollis. Ut justo. Suspendisse potenti."),
 		TupletInteger(DUE_KEY, (uint8_t) 0)
 	};
 
