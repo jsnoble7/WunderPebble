@@ -1,98 +1,125 @@
-var base = "https://api.wunderlist.com/";
+var base = "https://api.wunderlist.com";
 var token;
 var loginData;
-var lists;
+var lists = [];
 var todayList = [];
-var username = "jahdaic@yahoo.com";
-var password = "blastoise";
+var title;
 var body;
+var response;
+var req;
 
-function login(action, data) {
-	title += "Starting Login\n";
-	var response;
+function getTasks(list)
+{
+	//Pebble.showSimpleNotificationOnPebble("Update", "Getting Tasks");
 	
-	var req = new XMLHttpRequest();
-	req.open('POST', base + "login", true);
+	req = new XMLHttpRequest();
+	
+	req.open('GET', base + "/me/tasks", true);
+	req.setRequestHeader ("Authorization", "Bearer "+token);
+	
 	req.onload = function(e)
 	{
 		if (req.readyState == 4)
 		{
 			if(req.status == 200) 
 			{
-				console.log(req.responseText);
+				//Pebble.showSimpleNotificationOnPebble("Tasks Success", "Yes!");
+							
 				response = JSON.parse(req.responseText);
 				
-				if (response && response.token)
+				body = "";
+				var today = new Date();
+				today.setHours(23);
+				today.setMinutes(59);
+				
+				for (var i = 0 ; i < response.length ; i++)
 				{
-					token = response.token;
-					Pebble.sendAppMessage({
-						"title":"Done"
-					});
+					if(list == "today" || !list)
+					{
+						if(response[i].due_date && response[i].title)
+						{
+							var due_date = new Date(response[i].due_date);
+							
+							if(due_date.getTime() <= today.getTime() && response[i].completed_at == null)
+							{
+								todayList.push(response[i]);
+								body += "\u00BB"+response[i].title;
+							}
+						}
+					}
+					else
+					{
+						;
+					}
 				}
-
-			}
-			else
-			{
-				console.log("Error");
-				body += req.status+"\n";
+				title = "Today ("+todayList.length+")";
+				
+				Pebble.showSimpleNotificationOnPebble(title, body);
+				
 				Pebble.sendAppMessage({
-					"title":"Error",
+					"title":title,
 					"body":body
 				});
 			}
+			else
+			{
+				Pebble.showSimpleNotificationOnPebble("Tasks Error", req.status + ": " + req.statusText);
+			}
 		}
 	}
-	req.send("email="+username+"&password="+password);
+	
+	req.send();
 }
 
 // Initialize the App
-Pebble.addEventListener(
+Pebble.addEventListener
+(
 	"ready",
-	function(e) {
-		console.log("connect!" + e.ready);
-		login();
+	function(e)
+	{
+		username = localStorage.username;
+		password = localStorage.password;
+		token = localStorage.token;
+		getTasks();
 	}
 );
 
 // Every time the App sends a message
-Pebble.addEventListener(
+Pebble.addEventListener
+(
 	"appmessage",
-	function(e) {
-		console.log("message!");
-		var ran = Math.floor((Math.random()*5)+1);
-		
-		/*if(ran == 1) {title="vagina";}
-		if(ran == 2) {title="boob";}
-		if(ran == 3) {title="stuff";}
-		if(ran == 4) {title="poop";}
-		if(ran == 5) {title="nerf!";}
-		
-		Pebble.sendAppMessage({
-			"title":title
-		});*/
+	function(e)
+	{
+		getTasks();
 	}
 );
 
 // Show the configuration page
-Pebble.addEventListener(
+Pebble.addEventListener
+(
 	"showConfiguration",
-	function(e) {
-		console.log("Configuration Window Opened");
+	function(e)
+	{
 		Pebble.openURL("http://intrepidwebdesigns.com/WunderPebble/config/");
 	}
 );
 
 // Configuration page closed
-Pebble.addEventListener(
+Pebble.addEventListener
+(
 	"webviewclosed",
-	function(e) {
-		console.log("Configuration Window Closed");
+	function(e)
+	{		
+		var data = JSON.parse(e.response);		
 		
-		var data = JSON.parse(e.response);
+		username = data.email;
+		password = data.password;
+		token = data.token;
+				
+		localStorage.username = data.email;
+		localStorage.password = data.password;
+		localStorage.token = data.token;
 		
-		window.localStorage.username = e.username;
-		window.localStorage.password = e.password;
-		
-		login();
+		getTasks();
 	}
 );
