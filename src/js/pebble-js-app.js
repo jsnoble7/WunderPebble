@@ -58,7 +58,8 @@ function getTasks(list)
 				
 				Pebble.sendAppMessage({
 					"title":title,
-					"body":body
+					"body":body,
+					"due":todayList.length
 				});
 			}
 			else
