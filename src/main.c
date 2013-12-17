@@ -8,22 +8,71 @@ static Window *window;
 static MenuLayer *menu_layer;
 
 // Data Variables
-static const char *section_title = "Test Items";
-static uint16_t num_due = 4;
+static const char *section_title = "Loading...";
+static uint16_t num_due = 0;
+static char *title_divider = "\u00BB";
+static const char *item_titles = "";
 
 // Guts and Stuff Variables
-/*static AppSync sync;
+static AppSync sync;
 static uint8_t sync_buffer[512];
 enum Keys {
 	TITLE_KEY = 0x0,	// TUPLE_CSTRING
 	BODY_KEY = 0x1,		// TUPLE_CSTRING
 	DUE_KEY = 0X2		// TUPLE_INTEGER
-};*/
+};
 
 // FUNCTIONS
-/*static void app_no_update(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "App Message Sync Error: %d", app_message_error);
-	
+char *strtok( char *s, const char *delim )
+{
+	register char *spanp;
+	register int c, sc;
+	char *tok;
+	static char *last;
+
+	if (s == NULL && (s = last) == NULL)
+		return (NULL);
+
+	/*
+	 * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
+	 */
+cont:
+	c = *s++;
+	for (spanp = (char *)delim; (sc = *spanp++) != 0;) {
+		if (c == sc)
+			goto cont;
+	}
+
+	if (c == 0) {		/* no non-delimiter characters */
+		last = NULL;
+		return (NULL);
+	}
+	tok = s - 1;
+
+	/*
+	 * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
+	 * Note that delim must have one NUL; we stop if we see that, too.
+	 */
+	for (;;) {
+		c = *s++;
+		spanp = (char *)delim;
+		do {
+			if ((sc = *spanp++) == c) {
+				if (c == 0)
+					s = NULL;
+				else
+					s[-1] = 0;
+				last = s;
+				return (tok);
+			}
+		} while (sc != 0);
+	}
+	/* NOTREACHED */
+}
+
+static void app_no_update(DictionaryResult dict_error, AppMessageResult app_message_error, void *context)
+{
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "App Message Sync Error: %d", app_message_error);	
 }
 
 static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple* old_tuple, void* context)
@@ -32,14 +81,10 @@ static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple*
 	{
 		case TITLE_KEY:
 			section_title = new_tuple->value->cstring;
-			//menu_section[0].title = new_tuple->value->cstring;
 			break;
 
 		case BODY_KEY:
-			//\u00BB
-			//menu_items[0].title = "Number of Tasks";
-			//menu_items[0].subtitle = "Still a subtitle";
-			//create_menu_items(body_layer, new_tuple->value->cstring);
+			item_titles = new_tuple->value->cstring;
 			break;
 
 		case DUE_KEY:
@@ -47,8 +92,9 @@ static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple*
 			//text_layer_set_text(title_layer, new_tuple->value->cstring);
 			break;
 	}
-	;
-}*/
+	
+	menu_layer_reload_data(menu_layer);
+}
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data)
 {
@@ -72,7 +118,23 @@ static void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, ui
 
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data)
 {
-	menu_cell_basic_draw(ctx, cell_layer, "title", "subtitle", NULL);
+	uint16_t counter = 0;
+	char titles[strlen(item_titles) + 1];
+	strcpy(titles, item_titles);
+	
+	char *token = strtok(titles, title_divider);
+		
+	while(token != NULL)
+	{		
+		if(cell_index->row == counter)
+		{
+			menu_cell_basic_draw(ctx, cell_layer, token, NULL, NULL);
+			break;
+		}
+		
+		token = strtok(NULL, title_divider);
+		counter++;
+	}
 }
 
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data)
@@ -80,7 +142,7 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
 	layer_mark_dirty(menu_layer_get_layer(menu_layer));
 }
 
-/*static void send_cmd(void)
+static void send_cmd(void)
 {
 	DictionaryIterator *iter;
 	app_message_outbox_begin(&iter);
@@ -93,7 +155,7 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
 	dict_write_end(iter);
 
 	app_message_outbox_send();
-}*/
+}
 
 static void window_load(Window *window)
 {		
@@ -117,7 +179,7 @@ static void window_load(Window *window)
 	layer_add_child(window_layer, menu_layer_get_layer(menu_layer));
 		
 	// Set Up Tuplet
-	/*Tuplet initial_values[] = {
+	Tuplet initial_values[] = {
 		TupletCString(TITLE_KEY, "Title"),
 		TupletCString(BODY_KEY, "Body"),
 		TupletInteger(DUE_KEY, (uint8_t) 0)
@@ -126,11 +188,11 @@ static void window_load(Window *window)
 	// Start Syncing
 	app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values, ARRAY_LENGTH(initial_values), app_updated, app_no_update, NULL);
 
-	send_cmd();*/
+	send_cmd();
 }
 
 static void window_unload(Window *window) {
-	//app_sync_deinit(&sync);
+	app_sync_deinit(&sync);
 	menu_layer_destroy(menu_layer);
 }
 
@@ -144,9 +206,9 @@ static void init(void)
 		.unload = window_unload
 	});
 
-	/*const int inbound_size = 1024;
+	const int inbound_size = 1024;
 	const int outbound_size = 128;
-	app_message_open(inbound_size, outbound_size);*/
+	app_message_open(inbound_size, outbound_size);
 
 	const bool animated = true;
 	window_stack_push(window, animated);

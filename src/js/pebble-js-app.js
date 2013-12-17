@@ -43,7 +43,7 @@ function getTasks(list)
 							if(due_date.getTime() <= today.getTime() && response[i].completed_at == null)
 							{
 								todayList.push(response[i]);
-								body += "\u00BB"+response[i].title;
+								body += response[i].title+"\u00BB";
 							}
 						}
 					}
@@ -54,7 +54,7 @@ function getTasks(list)
 				}
 				title = "Today ("+todayList.length+")";
 				
-				Pebble.showSimpleNotificationOnPebble(title, body);
+				//Pebble.showSimpleNotificationOnPebble(title, body);
 				
 				Pebble.sendAppMessage({
 					"title":title,
