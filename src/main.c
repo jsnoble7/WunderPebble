@@ -9,9 +9,13 @@ static MenuLayer *menu_layer;
 
 // Data Variables
 static const char *section_title = "Loading...";
-static uint16_t num_due = 0;
-static char *title_divider = "\u00BB";
 static const char *item_titles = "";
+static uint16_t rows = 0;
+static const char *section = "lists";
+static char *title_divider = "\u00BB";
+static GBitmap *menu_icons[5];
+
+//static layer = MAIN;
 
 // Guts and Stuff Variables
 static AppSync sync;
@@ -19,8 +23,14 @@ static uint8_t sync_buffer[512];
 enum Keys {
 	TITLE_KEY = 0x0,	// TUPLE_CSTRING
 	BODY_KEY = 0x1,		// TUPLE_CSTRING
-	DUE_KEY = 0X2		// TUPLE_INTEGER
+	ROWS_KEY = 0X2,		// TUPLE_INTEGER
+	SECTION_KEY = 0x3,	// TUPLE_CSTRING
 };
+/*enum Layers{
+	MAIN = 0x0,
+	LIST = 0x1,
+	TASK = 0x2
+};*/
 
 // FUNCTIONS
 char *strtok( char *s, const char *delim )
@@ -87,9 +97,12 @@ static void app_updated(const uint32_t key, const Tuple* new_tuple, const Tuple*
 			item_titles = new_tuple->value->cstring;
 			break;
 
-		case DUE_KEY:
-			num_due = new_tuple->value->uint8;
-			//text_layer_set_text(title_layer, new_tuple->value->cstring);
+		case ROWS_KEY:
+			rows = new_tuple->value->uint8;
+			break;
+		
+		case SECTION_KEY:
+			section = new_tuple->value->cstring;
 			break;
 	}
 	
@@ -103,7 +116,7 @@ static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data
 
 static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *data)
 {
-	return num_due;
+	return rows;
 }
 
 static int16_t menu_get_header_height_callback(MenuLayer *menu_layer, uint16_t section_index, void *data)
@@ -128,7 +141,15 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 	{		
 		if(cell_index->row == counter)
 		{
-			menu_cell_basic_draw(ctx, cell_layer, token, NULL, NULL);
+			if(counter < 3)
+			{
+				menu_cell_basic_draw(ctx, cell_layer, token, NULL, menu_icons[counter]);
+			}
+			else
+			{
+				menu_cell_basic_draw(ctx, cell_layer, token, NULL, menu_icons[3]);
+			}
+			
 			break;
 		}
 		
@@ -159,6 +180,13 @@ static void send_cmd(void)
 
 static void window_load(Window *window)
 {		
+	// Setting Up the Icons
+	menu_icons[0] = gbitmap_create_with_resource(INBOX_ICON);
+	menu_icons[1] = gbitmap_create_with_resource(TODAY_ICON);
+	menu_icons[2] = gbitmap_create_with_resource(WEEK_ICON);
+	menu_icons[3] = gbitmap_create_with_resource(LIST_ICON);
+	menu_icons[4] = gbitmap_create_with_resource(GROUP_ICON);
+	
 	// Initial Setup of the Menu
 	Layer *window_layer = window_get_root_layer(window);
 	GRect bounds = layer_get_frame(window_layer);
@@ -180,9 +208,10 @@ static void window_load(Window *window)
 		
 	// Set Up Tuplet
 	Tuplet initial_values[] = {
-		TupletCString(TITLE_KEY, "Title"),
-		TupletCString(BODY_KEY, "Body"),
-		TupletInteger(DUE_KEY, (uint8_t) 0)
+		TupletCString(TITLE_KEY, "Loading..."),
+		TupletCString(BODY_KEY, ""),
+		TupletInteger(ROWS_KEY, (uint8_t) 0),
+		TupletCString(SECTION_KEY, "lists"),
 	};
 
 	// Start Syncing

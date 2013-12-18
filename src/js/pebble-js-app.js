@@ -5,8 +5,52 @@ var lists = [];
 var todayList = [];
 var title;
 var body;
+var ids;
 var response;
 var req;
+
+function getLists()
+{
+	req = new XMLHttpRequest();
+	
+	req.open('GET', base + "/me/lists", true);
+	req.setRequestHeader ("Authorization", "Bearer "+token);
+	
+	req.onload = function(e)
+	{
+		if (req.readyState == 4)
+		{
+			if(req.status == 200) 
+			{		
+				response = JSON.parse(req.responseText);
+				
+				body = "";
+								
+				for (var i = 0 ; i < response.length ; i++)
+				{
+					body += response[i].title+"\u00BB";
+					ids += response[i].id+"\u00BB";
+				}
+				
+				title = "Lists";
+				body = "Inbox\u00BBToday\u00BBWeek\u00BB" + body;
+								
+				Pebble.sendAppMessage({
+					"title":title,
+					"body":body,
+					"rows":i+3,
+					"section":"lists"
+				});
+			}
+			else
+			{
+				Pebble.showSimpleNotificationOnPebble("Tasks Error", req.status + ": " + req.statusText);
+			}
+		}
+	}
+	
+	req.send();
+}
 
 function getTasks(list)
 {
@@ -22,9 +66,7 @@ function getTasks(list)
 		if (req.readyState == 4)
 		{
 			if(req.status == 200) 
-			{
-				//Pebble.showSimpleNotificationOnPebble("Tasks Success", "Yes!");
-							
+			{							
 				response = JSON.parse(req.responseText);
 				
 				body = "";
@@ -42,7 +84,6 @@ function getTasks(list)
 							
 							if(due_date.getTime() <= today.getTime() && response[i].completed_at == null)
 							{
-								todayList.push(response[i]);
 								body += response[i].title+"\u00BB";
 							}
 						}
@@ -52,14 +93,14 @@ function getTasks(list)
 						;
 					}
 				}
-				title = "Today ("+todayList.length+")";
+				title = "Today ("+i+")";
 				
 				//Pebble.showSimpleNotificationOnPebble(title, body);
 				
 				Pebble.sendAppMessage({
 					"title":title,
 					"body":body,
-					"due":todayList.length
+					"due":i
 				});
 			}
 			else
@@ -81,7 +122,8 @@ Pebble.addEventListener
 		username = localStorage.username;
 		password = localStorage.password;
 		token = localStorage.token;
-		getTasks();
+		//getTasks();
+		getLists();
 	}
 );
 
@@ -91,7 +133,8 @@ Pebble.addEventListener
 	"appmessage",
 	function(e)
 	{
-		getTasks();
+		getLists();
+		//getTasks();
 	}
 );
 
@@ -121,6 +164,7 @@ Pebble.addEventListener
 		localStorage.password = data.password;
 		localStorage.token = data.token;
 		
-		getTasks();
+		getLists();
+		//getTasks();
 	}
 );
