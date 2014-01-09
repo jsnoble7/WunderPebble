@@ -4,10 +4,10 @@ This is my first attempt at a Pebble app and I'd like to make it a good one. I'm
 
 ##Things left to do
 
-[x] Access Wunderlist
-[x] Communication between Phone and app
-[x] Get Lists
-[x] Retrieve Tasks
-[ ] Close Tasks
-[ ] Read Task Description
-[ ] Get Subtasks (low priority)
+- [x] Access Wunderlist
+- [x] Communication between Phone and app
+- [x] Get Lists
+- [x] Retrieve Tasks
+- [ ] Close Tasks
+- [ ] Read Task Description
+- [ ] Get Subtasks (low priority)
